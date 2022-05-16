@@ -46,6 +46,14 @@ async function run(){
         const result = await carCollection.findOne(query);
         res.send(result);
     });
+    // get product base on email;
+    app.get('/myItems', async(req, res)=>{
+        const email = req.query.email;
+        const query = {email};
+        const cursor = carCollection.find(query);
+        const reslut = await cursor.toArray();
+        res.send(result);
+    });
     //Add a new product
     app.post('/car', async(req, res)=>{
         const data = req.body;
@@ -60,7 +68,6 @@ async function run(){
         const option = {upsert : true};
         const updateInfo = {$set : updatedDoc};
         const result = await carCollection.updateOne(query, updateInfo, option);
-        console.log(updateInfo);
         res.send(result);
     });
     //delete single product

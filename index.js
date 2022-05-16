@@ -14,8 +14,9 @@ app.use(cors());
 
 // JWT verify
 function jwtVerify(req, res, next){
-    const authHeader = req.heders.auth;
-    if(!auth){
+    const authHeader = req.headers.auth;
+
+    if(!authHeader){
         return res.status(401).send({message : 'Unauthorize Access'});
     }
 
@@ -26,6 +27,7 @@ function jwtVerify(req, res, next){
         }
         req.decoded = decoded;
 
+        next();
     });
 }
 
@@ -40,18 +42,19 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
-    await client.connect(); 
+    try{
+        await client.connect(); 
     const carCollection = client.db('cars').collection('car');
 
     // verify login
-    app.get('/login', async(req, res)=>{
+    app.post('/login', async(req, res)=>{
         const user = req.body;
         const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN, {
             expiresIn : '1d'
         });
         res.send({accessToken});
     });
-    
+
     // get all cars
     app.get('/cars', async(req, res)=>{
         const query = {};
@@ -76,13 +79,20 @@ async function run(){
         res.send(result);
     });
     // get product base on email;
-    app.get('/myItems', async(req, res)=>{
-        const email = req.query.email;
-        const query = {email};
-        const cursor = carCollection.find(query);
-        const result = await cursor.toArray();
-        console.log(result);
-        res.send(result);
+    app.get('/myItems', jwtVerify ,  async(req, res)=>{
+        const newEmail = req.query.email;
+        const email = req.decoded.email;
+        
+        if(email === newEmail){
+            console.log(newEmail, email);
+            const query = {newEmail};
+            const cursor = carCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        }
+        else{
+            res.status(403).send({message : 'Forbidden access'});
+        }
     });
     //Add a new product
     app.post('/car', async(req, res)=>{
@@ -107,6 +117,8 @@ async function run(){
         const result = await carCollection.deleteOne(query);
         res.send(result)
     });
+    }
+    finally{}
 }
 
 run().catch(console.dir);

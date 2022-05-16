@@ -5,18 +5,37 @@ const { application } = require('express');
 require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 
 // middleware 
 app.use(express.json());
 app.use(cors());
+
+// JWT verify
+function jwtVerify(req, res, next){
+    const authHeader = req.heders.auth;
+    if(!auth){
+        return res.status(401).send({message : 'Unauthorize Access'});
+    }
+
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded)=>{
+        if(err){
+            res.status(403).send({message : 'Forbidden access'});
+        }
+        req.decoded = decoded;
+        
+    });
+}
 
 // default routes
 app.get('/', (req, res)=>{
     res.send('Hello world');
 });
 
+
 // Mongo db
-const uri = "mongodb+srv://Assignment11:Assignment11@cluster0.5co6x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5co6x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run(){
@@ -51,7 +70,8 @@ async function run(){
         const email = req.query.email;
         const query = {email};
         const cursor = carCollection.find(query);
-        const reslut = await cursor.toArray();
+        const result = await cursor.toArray();
+        console.log(result);
         res.send(result);
     });
     //Add a new product

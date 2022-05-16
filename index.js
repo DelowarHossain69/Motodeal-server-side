@@ -6,6 +6,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
+const { get } = require('express/lib/response');
 
 // middleware 
 app.use(express.json());
@@ -24,7 +25,7 @@ function jwtVerify(req, res, next){
             res.status(403).send({message : 'Forbidden access'});
         }
         req.decoded = decoded;
-        
+
     });
 }
 
@@ -42,6 +43,15 @@ async function run(){
     await client.connect(); 
     const carCollection = client.db('cars').collection('car');
 
+    // verify login
+    app.get('/login', async(req, res)=>{
+        const user = req.body;
+        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN, {
+            expiresIn : '1d'
+        });
+        res.send({accessToken});
+    });
+    
     // get all cars
     app.get('/cars', async(req, res)=>{
         const query = {};

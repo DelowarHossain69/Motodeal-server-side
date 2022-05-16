@@ -37,7 +37,7 @@ app.get('/', (req, res)=>{
 });
 
 
-// Mongo db
+// Mongo db connected
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5co6x.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -84,8 +84,7 @@ async function run(){
         const email = req.decoded.email;
         
         if(email === newEmail){
-            console.log(newEmail, email);
-            const query = {newEmail};
+            const query = {email : newEmail};
             const cursor = carCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);

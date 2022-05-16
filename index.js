@@ -1,12 +1,11 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
-const { application } = require("express");
-require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const app = express();
 const PORT = process.env.PORT || 5000;
-const jwt = require("jsonwebtoken");
-const { get } = require("express/lib/response");
+require("dotenv").config();
+
 
 // middleware
 app.use(express.json());
@@ -123,7 +122,7 @@ async function run() {
       const result = await carCollection.deleteOne(query);
       res.send(result);
     });
-    
+
   } 
   finally {
 
